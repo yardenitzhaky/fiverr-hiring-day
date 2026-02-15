@@ -36,3 +36,8 @@ Copy `.env.example` to `.env`. The Docker Compose service exposes PostgreSQL on 
 - DB: `fiverr_db`
 - User: `fiverr_user`
 - Password: `fiverr_pass`
+
+The `.env` file contains:
+- `DATABASE_URL` — full connection string used by `get_db_connection()`
+- `DB_USER` — database username (`fiverr_user`)
+- `DB_PASSWORD` — database password (`fiverr_pass`)

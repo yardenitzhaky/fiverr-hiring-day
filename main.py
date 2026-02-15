@@ -1,17 +1,35 @@
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Depends
 from dotenv import load_dotenv
+from sqlmodel import SQLModel, Session, create_engine, Field, select
+from sqlalchemy import text
 import os
-import psycopg2
 
 load_dotenv()
 
-app = FastAPI(title="Fiverr Hiring Day API")
-
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+engine = create_engine(DATABASE_URL)
 
-def get_db_connection():
-    return psycopg2.connect(DATABASE_URL)
+
+class Item(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    name: str
+    description: str | None = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    SQLModel.metadata.create_all(engine)
+    yield
+
+
+app = FastAPI(title="Fiverr Hiring Day API", lifespan=lifespan)
+
+
+def get_session():
+    with Session(engine) as session:
+        yield session
 
 
 @app.get("/")
@@ -20,13 +38,9 @@ def read_root():
 
 
 @app.get("/health")
-def health_check():
+def health_check(session: Session = Depends(get_session)):
     try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT 1")
-        cursor.close()
-        conn.close()
+        session.exec(text("SELECT 1"))
         return {"status": "ok", "database": "connected"}
     except Exception as e:
         return {"status": "error", "database": "unreachable", "detail": str(e)}
