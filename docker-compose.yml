@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fiverr_postgres
+    environment:
+      POSTGRES_DB: fiverr_db
+      POSTGRES_USER: fiverr_user
+      POSTGRES_PASSWORD: fiverr_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
