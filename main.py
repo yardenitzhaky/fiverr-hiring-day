@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from dotenv import load_dotenv
 from sqlmodel import SQLModel, Session, create_engine, Field, select
 from sqlalchemy import text
@@ -42,5 +42,5 @@ def health_check(session: Session = Depends(get_session)):
     try:
         session.exec(text("SELECT 1"))
         return {"status": "ok", "database": "connected"}
-    except Exception as e:
-        return {"status": "error", "database": "unreachable", "detail": str(e)}
+    except Exception:
+        raise HTTPException(status_code=503, detail="Database unreachable")

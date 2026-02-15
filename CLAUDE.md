@@ -26,18 +26,15 @@ Interactive API docs are available at `http://localhost:8000/docs` when the serv
 
 ## Architecture
 
-All application code lives in `main.py`. The app uses a synchronous psycopg2 connection pattern: `get_db_connection()` opens a new connection per request and closes it manually. There is no connection pool or ORM.
+All application code lives in `main.py`. The app uses **SQLModel** (built on SQLAlchemy + Pydantic) as the ORM. A module-level `engine` is created from `DATABASE_URL` at import time. Tables are created via `SQLModel.metadata.create_all(engine)` inside a `lifespan` context manager on startup.
+
+Database sessions are provided per-request through a `get_session()` FastAPI dependency using `with Session(engine) as session: yield session`, which ensures the session is always closed, even on errors.
 
 Database credentials are read from `.env` at startup via `load_dotenv()` into the module-level `DATABASE_URL` string.
 
 ## Environment
 
-Copy `.env.example` to `.env`. The Docker Compose service exposes PostgreSQL on `localhost:5432` with:
-- DB: `fiverr_db`
-- User: `fiverr_user`
-- Password: `fiverr_pass`
-
 The `.env` file contains:
-- `DATABASE_URL` — full connection string used by `get_db_connection()`
+- `DATABASE_URL` — full connection string used by `create_engine()`
 - `DB_USER` — database username (`fiverr_user`)
 - `DB_PASSWORD` — database password (`fiverr_pass`)
